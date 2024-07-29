@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style type="text/css">
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #282828; /* Grayish black */
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        .chat-container {
+            background-color: #222; /* Darker grayish black */
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #009688;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .chat-body {
+            height: 400px; /* Fixed height */
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #222; /* Darker grayish black */
+        }
+
+        .chat-message {
+            background-color: #333; /* Dark gray */
+            border-radius: 20px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            max-width: 70%;
+            color: #fff;
+            float: left;
+        }
+
+        .user-message {
+            background-color: #009688;
+            align-self: flex-end;
+            text-align: right;
+            float: right;
+        }
+
+        .assistant-message {
+            background-color: #4caf50;
+            align-self: flex-start;
+        }
+
+        .chat-footer {
+            padding: 15px;
+            background-color: #009688;
+            border-radius: 0 0 10px 10px;
+            text-align: center;
+        }
+
+        .input-message {
+            width: calc(100% - 40px);
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            margin-right: 10px;
+            font-size: 14px;
+            outline: none;
+            color: #fff;
+            background-color: #333; /* Dark gray */
+        }
+
+        .btn-send, .btn-clear {
+            border: none;
+            background-color: #4caf50;
+            color: #fff;
+            border-radius: 20px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-send:hover, .btn-clear:hover {
+            background-color: #43a047;
+        }
+
+        .msg-container {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="chat-container">
+                <div class="chat-header">Career Assistant</div>
+                <div class="chat-body" id="chat-body">
+                    <!-- Messages will appear here -->
+                </div>
+                <div class="chat-footer">
+                    <input type="text" id="messageText" class="input-message" placeholder="Enter Message"><br><br><br>
+                    <button class="btn btn-send" id="sendBtn">Send</button>
+                    <button class="btn btn-clear" id="clearBtn">Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Event listener for sending message
+        $("#sendBtn").click(function() {
+            sendMessage();
+        });
+
+        // Event listener for pressing Enter key
+        $("#messageText").keypress(function(e) {
+            if (e.which == 13) {
+                sendMessage();
+            }
+        });
+
+        // Event listener for clearing messages
+        $("#clearBtn").click(function() {
+            // $("#chat-body").empty();
+            window.location.reload();
+        });
+
+        // Function to send message
+        function sendMessage() {
+            var message = $("#messageText").val();
+            if (message.trim() !== "") {
+                // Append user message to chat body
+                $("#chat-body").append('<div class="chat-container"><div class="chat-message user-message">' + message + '</div></div>');
+                // Clear input field
+                $("#messageText").val("");
+                // Scroll to bottom of chat body
+                $("#chat-body").scrollTop($("#chat-body")[0].scrollHeight);
+
+                // Send message to server (not implemented in this example)
+                $.ajax({
+                    type: "POST",
+                    url: "/chat",
+                    data: { input: message },
+                    success: function(response) {
+                        // Remove asterisks (*) from the response
+                        var cleanResponse = response.replace(/\*/g, '');
+
+                        // Append bot message to chat body
+                        $("#chat-body").append('<div class="chat-container"><div class="chat-message assistant-message">' + cleanResponse + '</div></div>');
+                        // Clear input field
+                        $("#messageText").val("");
+                        // Scroll to bottom of chat body
+                        $("#chat-body").scrollTop($("#chat-body")[0].scrollHeight);
+
+                        if ('speechSynthesis' in window) {
+                            // Create a new SpeechSynthesisUtterance object
+                            var utterance = new SpeechSynthesisUtterance();
+
+                            // Set text to be spoken
+                            utterance.text = cleanResponse;
+
+                            // Optionally, set voice, rate, pitch, etc.
+                            utterance.voice = speechSynthesis.getVoices().filter(function(voice) { return voice.name == 'Google UK English Female'; })[0];
+                            utterance.rate = 1;
+                            utterance.pitch = 10 ; // Increase pitch
+
+                            // Speak the text
+                            speechSynthesis.speak(utterance);
+                        } else {
+                            // Speech synthesis not supported
+                            console.log("Speech synthesis not supported.");     
+                        }
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>
