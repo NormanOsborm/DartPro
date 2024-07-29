@@ -5,7 +5,7 @@ import re
 
 app = Flask(__name__)
 
-api_key = "AIzaSyDXWRRh5XQy9O0_PloCn2Y8PYdvTs_XW7A"
+api_key = "..."
 model_name = "gemini-pro"
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel(model_name)
